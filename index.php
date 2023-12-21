@@ -2,7 +2,9 @@
 // check drops/ebiz/pending folder for files.
 $dir = "drops/ebiz/pending";
 $files = scandir($dir);
-$num_files = count($files)-2;
+$num_files = count($files) - 2;
+$num_listings_processed = 0;
+$num_images_downloaded = 0;
 
 echo "There are $num_files files in the directory $dir";
 
@@ -15,6 +17,8 @@ foreach ($files as $file) {
         // open the file
         $handle = fopen("$dir/$file", "r");
         if ($handle) {
+            echo "File opened at: " . date("h:i:sa") . "\n";
+            $process_started_at = date("h:i:sa");
             while (($line = fgets($handle)) !== false) {
                 // skip the first line because it's the headers
                 if (strpos($line, "Dealer_ID") !== false) {
@@ -89,29 +93,14 @@ foreach ($files as $file) {
                 $photo_urls_array = explode(",", $photo_urls);
                 // loop through the array and download the images
                 foreach ($photo_urls_array as $photo_url) {
-        
+
+
+
                     // download the image
                     $image = file_get_contents($photo_url);
-                    // download each image 10 times to simulate larger volume
-                    $image = file_get_contents($photo_url);
-                    $image = file_get_contents($photo_url);
-                    $image = file_get_contents($photo_url);
-                    $image = file_get_contents($photo_url); 
-                    $image = file_get_contents($photo_url);
-                    $image = file_get_contents($photo_url);
-                    $image = file_get_contents($photo_url);
-                    $image = file_get_contents($photo_url);
-                    $image = file_get_contents($photo_url);
 
-                    
-
-
-                    // trim the url to get the filename
-                    $photo_url = trim($photo_url);
-                    $photo_url = basename($photo_url);
-
-                    // save the image to the folder
-                    file_put_contents("$folder/$photo_url", $image);
+                    file_put_contents($file_name, $image);
+                    $num_images_downloaded++;
                 }
 
 
@@ -141,6 +130,7 @@ foreach ($files as $file) {
                 echo "Description: $description\n";
                 echo "Local Images: $photo_urls\n";
                 echo "Number of Local Images: " . count($photo_urls_array) . "\n";
+
                 echo "Date In Stock: $date_in_stock\n";
                 echo "Time ended: " . date("h:i:sa") . "\n";
                 $time_end = microtime(true);
@@ -148,10 +138,24 @@ foreach ($files as $file) {
                 echo "Execution time: $execution_time\n";
                 echo "---------------";
                 echo "\n";
+                $num_listings_processed++;
+            } // end while (($line = fgets($handle)) !== false)
+        } // end if ($handle)
+
+        fclose($handle);
+
+        // output some stats
+        $process_ended_at = date("h:i:sa");
+        echo "File closed at: " . date("h:i:sa") . "\n";
+        echo "Process started at: $process_started_at\n";
+        echo "Process ended at: $process_ended_at\n";
+        $process_started_at = strtotime($process_started_at);
+        $process_ended_at = strtotime($process_ended_at);
+        echo "Number of listings processed: $num_listings_processed\n";
+        echo "Total execution time: " . ($process_ended_at - $process_started_at) . " seconds\n";
+        echo "Number of images downloaded: $num_images_downloaded\n";
+        echo "Average execution time per listing: " . (($process_ended_at - $process_started_at) / $num_listings_processed) . " seconds\n";
+    } else {
+        // error opening the file.
     }
-}
-fclose($handle);
-} else {
-    // error opening the file.
-}
 }
